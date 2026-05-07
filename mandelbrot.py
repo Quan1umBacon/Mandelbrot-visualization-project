@@ -1,16 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-import time
 
-start = time.time()
 #Define resolution of plot
-width, height = 800, 600
-#Define axis of plot
+width = 800
+height = int(width/4*3)
+#Define axis of initial plot
 re_min, re_max, im_min, im_max= -2.5, 1, -1.25, 1.25
 #Define maximum number of iterations
-max_iter=300
-
+max_iter=400
+#Define zoom factor for zoom function on click
+zoom_factor = 6
 
 def create_c_plane (re_min=-2.5, re_max=1, im_min=-1.25, im_max=1.25, width=width, height=height):
     c_plane_re = np.linspace(re_min,re_max,width)
@@ -33,12 +33,28 @@ def compute_mandelbrot(c_plane, max_iter=max_iter):
 
     return iteration_count
 
-result_array_2d = compute_mandelbrot(c_plane)
-plt.imshow(result_array_2d, origin='lower', extent=[re_min, re_max, im_min, im_max], cmap='inferno', norm=colors.LogNorm())
-plt.xlabel("Re", labelpad=10, loc='right')
-plt.ylabel("Im", rotation=0, labelpad=5, loc='top')
-plt.show()
+def on_click(event):
+    re_click = event.xdata 
+    im_click = event.ydata
+    global re_min, re_max, im_min, im_max
+    re_width = re_max - re_min
+    im_height = im_max - im_min
+    re_min = re_click - (re_width)/(2*zoom_factor)
+    re_max = re_click + (re_width)/(2*zoom_factor)
+    im_min = im_click - (im_height)/(2*zoom_factor)
+    im_max = im_click + (im_height)/(2*zoom_factor)
+    new_plane = create_c_plane(re_min, re_max, im_min, im_max)
+    result = compute_mandelbrot(new_plane)
+    ax.imshow(result, origin='lower', extent=[re_min, re_max, im_min, im_max], cmap='inferno', norm=colors.LogNorm())
+    ax.set_xlabel("Re", labelpad=10, loc='right')
+    ax.set_ylabel("Im", rotation=0, labelpad=5, loc='top')
+    fig.canvas.draw()
 
-end = time.time()
-print(end - start)
+fig, ax = plt.subplots()
+result_array_2d = compute_mandelbrot(c_plane)
+ax.imshow(result_array_2d, origin='lower', extent=[re_min, re_max, im_min, im_max], cmap='inferno', norm=colors.LogNorm())
+ax.set_xlabel("Re", labelpad=10, loc='right')
+ax.set_ylabel("Im", rotation=0, labelpad=5, loc='top')
+fig.canvas.mpl_connect('button_press_event', on_click) #Event-Handler
+plt.show()
 
