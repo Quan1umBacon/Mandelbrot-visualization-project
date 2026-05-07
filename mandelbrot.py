@@ -1,11 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 
 #Define resolution of plot
-width=800
-height=600
+width, height = 800, 600
+#Define axis of plot
+re_min, re_max, im_min, im_max= -2.5, 1, -1.25, 1.25
+#Define maximum number of iterations
+max_iter=300
 
-def iterate_z(c, max_iter=200):
+
+def iterate_z(c, max_iter=max_iter):
     z=0
     num_iter=0
     while abs(z) < 2 and num_iter < max_iter:
@@ -32,5 +37,7 @@ def compute_mandelbrot(c_plane):
 iteration_array = compute_mandelbrot(c_plane)
 result_array_1d= np.array(iteration_array)
 result_array_2d= result_array_1d.reshape(height,width)
-plt.imshow(result_array_2d)
+plt.imshow(result_array_2d, origin='lower', extent=[re_min, re_max, im_min, im_max], cmap='inferno', norm=colors.LogNorm())
+plt.xlabel("Re", labelpad=10, loc='right')
+plt.ylabel("Im", rotation=0, labelpad=5, loc='top')
 plt.show()
