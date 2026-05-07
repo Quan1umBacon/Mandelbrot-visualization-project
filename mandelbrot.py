@@ -34,10 +34,10 @@ def compute_mandelbrot(c_plane, max_iter=max_iter):
     return iteration_count
 
 result_array_2d = compute_mandelbrot(c_plane)
-# plt.imshow(result_array_2d, origin='lower', extent=[re_min, re_max, im_min, im_max], cmap='inferno', norm=colors.LogNorm())
-# plt.xlabel("Re", labelpad=10, loc='right')
-# plt.ylabel("Im", rotation=0, labelpad=5, loc='top')
-# plt.show()
+plt.imshow(result_array_2d, origin='lower', extent=[re_min, re_max, im_min, im_max], cmap='inferno', norm=colors.LogNorm())
+plt.xlabel("Re", labelpad=10, loc='right')
+plt.ylabel("Im", rotation=0, labelpad=5, loc='top')
+plt.show()
 
 end = time.time()
 print(end - start)
