@@ -28,20 +28,20 @@ j_re_min, j_re_max, j_im_min, j_im_max= -2, 2, -1.5, 1.5
 #Define zoom factor for zoom function on click
 zoom_factor = 4
 #Define color maps to be interated through when c is pressed
-colors_list = ['darkblue','blue','cyan','white','yellow','orange','red','black']
+colors_list = ['midnightblue','blue','cyan','white','yellow','orange','red','black']
 custom_cmap = LinearSegmentedColormap.from_list('mandelbrot', colors_list)
 cmaps = [custom_cmap,'Greys','inferno','twilight','bone','terrain']
 
 print('Numba compiling ...')
 #---------------------------------------global variables-----------------------------------------------
 height = int(width/4*3)
-julia_width = 600
+julia_width = 800
 julia_heigth = int(julia_width/4*3)
 zoom_level = 1
 cmap_index = 0
 max_iter_dynamic = max_iter
 last_render=0
-throttle_ms=130
+throttle_ms=200
 c_now=0j
 #-----------------------------------------Functions----------------------------------------------------
 
@@ -61,11 +61,15 @@ def iterate_z_numba(c, max_iter):
     while abs(z) < 2 and num_iter < max_iter:
         z = z**2 + c 
         num_iter = num_iter + 1
-    return(num_iter)
+    if num_iter==max_iter:
+        return float(max_iter)
+    else:
+        smooth= num_iter -np.log(np.log(abs(z))) / np.log(2)
+    return smooth
 
 @njit(parallel=True)
 def compute_mandelbrot_numba(c_flat, max_iter):
-    mandel_array = np.zeros(len(c_flat), dtype=np.int32) #create full-sized array, allocates full memory for numba
+    mandel_array = np.zeros(len(c_flat), dtype=np.float32) #create full-sized array, allocates full memory for numba
     for i in prange(len(c_flat)):
         mandel_array[i]=iterate_z_numba(c_flat[i], max_iter)
     return mandel_array
@@ -77,11 +81,15 @@ def iterate_z_julia_numba(z, c, max_iter):
     while abs(z) < 2 and num_iter < max_iter:
         z = z**2 + c 
         num_iter = num_iter + 1
-    return(num_iter)
+    if num_iter==max_iter:
+        return float(max_iter)
+    else:
+        smooth= num_iter -np.log(np.log(abs(z))) / np.log(2)
+    return smooth
 
 @njit(parallel=True)
 def compute_julia(z_flat,c, max_iter):
-    julia_array = np.zeros(len(z_flat), dtype=np.int32) #create full-sized array, allocates full memory for numba
+    julia_array = np.zeros(len(z_flat), dtype=np.float32) #create full-sized array, allocates full memory for numba
     for i in prange(len(z_flat)):
         julia_array[i]=iterate_z_julia_numba(z=z_flat[i],c=c, max_iter=max_iter )
     return julia_array
@@ -175,18 +183,18 @@ julia_array_init = compute_julia(j_plane.flatten(),c=0, max_iter=max_iter).resha
 if julia_set_active== 'on':
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 10))
-    ax1.imshow(result_array_2d, origin='lower', extent=[re_min, re_max, im_min, im_max], cmap=cmaps[cmap_index], norm=colors.PowerNorm(gamma=0.65))
+    ax1.imshow(result_array_2d, origin='lower', extent=[re_min, re_max, im_min, im_max], cmap=cmaps[cmap_index], norm=colors.PowerNorm(gamma=0.6))
     ax1.set_xlabel("Re", labelpad=10, loc='right')
     ax1.set_ylabel("Im", rotation=0, labelpad=5, loc='top')
     cmap_name = cmaps[cmap_index] if isinstance(cmaps[cmap_index], str) else 'custom' # clear depiction of custom cmaps in plot title
     ax1.set_title(f"Zoom factor: 1 | Maximum Iterartions: {max_iter} | Color map: {cmap_name}")
-    ax2.imshow(julia_array_init, origin='lower', extent=[j_re_min, j_re_max, j_im_min, j_im_max], cmap=cmaps[cmap_index], norm=colors.PowerNorm(gamma=0.65))
+    ax2.imshow(julia_array_init, origin='lower', extent=[j_re_min, j_re_max, j_im_min, j_im_max], cmap=cmaps[cmap_index], norm=colors.PowerNorm(gamma=0.6))
     ax2.set_xlabel("Re", labelpad=10, loc='right')
     ax2.set_ylabel("Im", rotation=0, labelpad=5, loc='top')
     
 else:
     fig, ax1 = plt.subplots(figsize=(16, 10))
-    ax1.imshow(result_array_2d, origin='lower', extent=[re_min, re_max, im_min, im_max], cmap=cmaps[cmap_index], norm=colors.PowerNorm(gamma=0.65))
+    ax1.imshow(result_array_2d, origin='lower', extent=[re_min, re_max, im_min, im_max], cmap=cmaps[cmap_index], norm=colors.PowerNorm(gamma=0.6))
     ax1.set_xlabel("Re", labelpad=10, loc='right')
     ax1.set_ylabel("Im", rotation=0, labelpad=5, loc='top')
     ax1.set_title(f"Zoom factor: 1 | Maximum Iterartions: {max_iter} | Color map: {cmaps[cmap_index]}")
